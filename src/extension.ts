@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import { TaskPilotFileWatcher } from "./services/fileWatcher";
+import { TaskPilotSidebarProvider } from "./providers/sidebarProvider";
 import { ensureGitignore } from "./services/gitignoreManager";
 import { getBranchesDir } from "./services/gitService";
 
@@ -23,21 +24,19 @@ export function activate(context: vscode.ExtensionContext) {
   watcher.start();
   context.subscriptions.push(watcher);
 
-  // Log state changes for debugging
-  watcher.onStateChange(state => {
-    if (state) {
-      console.log(`TaskPilot: loaded ${state.meta.title || "untitled"} (${state.tasks.length} tasks)`);
-    } else {
-      console.log("TaskPilot: no TOML file for current branch");
-    }
-  });
-
-  // 4. Register sidebar provider (next step)
-  // const provider = new SidebarProvider(watcher, context);
-  // ...
+  // 4. Register sidebar provider
+  const provider = new TaskPilotSidebarProvider(watcher, context);
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider("taskpilot.dashboard", provider)
+  );
 
   // 5. Register commands
   context.subscriptions.push(
+    vscode.commands.registerCommand("taskpilot.init", () => {
+      ensureDirectories(workspaceRoot);
+      ensureGitignore(workspaceRoot);
+      vscode.window.showInformationMessage("TaskPilot initialized. Create a TOML file in .taskpilot/branches/ to get started.");
+    }),
     vscode.commands.registerCommand("taskpilot.refresh", () => watcher.refresh())
   );
 

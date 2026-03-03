@@ -108,6 +108,99 @@ export function getStyles(): string {
       color: rgba(88,166,255,0.55);
     }
 
+    /* ── Utility ── */
+
+    .tp-hidden {
+      display: none !important;
+    }
+
+    .tp-sidebar {
+      padding: var(--sp-2);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .tp-section {
+      margin-bottom: var(--sp-3);
+    }
+
+    .tp-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--sp-1) 0;
+      margin-bottom: var(--sp-1);
+    }
+
+    .tp-flex-1 {
+      flex: 1;
+    }
+
+    .tp-spacer {
+      flex: 1;
+    }
+
+    /* ── Empty State ── */
+
+    .tp-empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      text-align: center;
+      gap: var(--sp-2);
+    }
+
+    .tp-empty-state-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .tp-empty-state-hint {
+      font-size: 10px;
+      color: var(--text-disabled);
+    }
+
+    /* ── Header Summary ── */
+
+    .tp-header-summary {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      padding: var(--sp-2) 0;
+    }
+
+    .tp-header-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .tp-header-meta {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* ── Scope Drift Tag ── */
+
+    .tp-scope-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 0 5px;
+      border-radius: 3px;
+      background: rgba(210,153,34,0.12);
+      color: var(--warning);
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      line-height: 14px;
+      margin-left: 6px;
+    }
+
     /* ── 1. Card ── */
 
     .tp-card {
@@ -254,6 +347,29 @@ export function getStyles(): string {
       display: flex;
       gap: 2px;
       flex-shrink: 0;
+    }
+
+    /* ── Subtask Details ── */
+
+    .tp-subtask-details {
+      padding: 2px 6px 6px 17px;
+    }
+
+    .tp-subtask-details-context {
+      margin-bottom: 4px;
+    }
+
+    .tp-subtask-details-note {
+      padding-left: 6px;
+    }
+
+    .tp-subtask-details-file {
+      padding: 1px 0;
+      cursor: pointer;
+    }
+
+    .tp-subtask-details-file:hover {
+      text-decoration: underline;
     }
 
     /* ── 6. Expandable ── */
@@ -478,35 +594,6 @@ export function getStyles(): string {
       width: 10px;
       height: 10px;
       flex-shrink: 0;
-    }
-
-    /* ── Utility ── */
-
-    .tp-sidebar {
-      padding: var(--sp-2);
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    .tp-section {
-      margin-bottom: var(--sp-3);
-    }
-
-    .tp-section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: var(--sp-1) 0;
-      margin-bottom: var(--sp-1);
-    }
-
-    .tp-flex-1 {
-      flex: 1;
-    }
-
-    .tp-spacer {
-      flex: 1;
     }
   `;
 }

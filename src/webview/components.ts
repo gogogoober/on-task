@@ -1,6 +1,6 @@
 // HTML component builders
 
-import { Task, Subtask, TaskStatus, Observation, BurndownPoint, OutOfScopeItem } from "../types";
+import { Task, Subtask, TaskStatus, Observation, BurndownPoint, OutOfScopeItem, DashboardStats, TicketMeta } from "../types";
 
 // ── SVG Icons ──
 
@@ -9,6 +9,8 @@ const chevronSvg = `<svg class="tp-expandable-chevron" viewBox="0 0 16 16" fill=
 const chevronOpenSvg = `<svg class="tp-expandable-chevron tp-expandable-chevron--open" viewBox="0 0 16 16" fill="currentColor"><path d="M6.22 3.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 0 1 0-1.06Z"/></svg>`;
 
 const starSvg = `<svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>`;
+
+const buildSvg = `<svg viewBox="0 0 16 16" fill="currentColor"><path d="m11.28 3.22 4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 1 1-1.06-1.06L13.94 8l-3.72-3.72a.75.75 0 0 1 1.06-1.06Zm-6.56 0a.75.75 0 0 1 1.06 1.06L2.06 8l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25Z"/></svg>`;
 
 const lockSvg = `<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 4a4 4 0 0 1 8 0v2h.25c.966 0 1.75.784 1.75 1.75v5.5A1.75 1.75 0 0 1 12.25 15h-8.5A1.75 1.75 0 0 1 2 13.25v-5.5C2 6.784 2.784 6 3.75 6H4Zm8.25 3.5h-8.5a.25.25 0 0 0-.25.25v5.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-5.5a.25.25 0 0 0-.25-.25ZM10.5 6V4a2.5 2.5 0 1 0-5 0v2Z"/></svg>`;
 
@@ -26,11 +28,66 @@ function escapeHtml(text: string): string {
     .replace(/"/g, "&quot;");
 }
 
+// ── Empty State ──
+
+export function renderEmptyState(branch?: string): string {
+  const branchLine = branch
+    ? `<div class="tp-caption">Branch: ${escapeHtml(branch)}</div>`
+    : "";
+  return `<div class="tp-empty-state">
+  <div class="tp-empty-state-title">No active ticket</div>
+  ${branchLine}
+  <div class="tp-empty-state-hint">Create a .taskpilot/branches/ TOML file to get started</div>
+</div>`;
+}
+
+// ── Header Summary ──
+
+export function renderHeaderSummary(meta: TicketMeta, stats: DashboardStats): string {
+  return `<div class="tp-header-summary">
+  ${renderCircularProgress(stats.doneItems, stats.totalItems, "lg")}
+  <div class="tp-header-info">
+    <div class="tp-heading">${escapeHtml(meta.title || "Untitled")}</div>
+    <div class="tp-header-meta">${escapeHtml(meta.ticket)}${meta.ticket && meta.branch ? " \u00B7 " : ""}${escapeHtml(meta.branch)}</div>
+  </div>
+</div>`;
+}
+
+// ── Statement of Work ──
+
+export function renderStatementOfWork(statement: string): string {
+  if (!statement) {
+    return `<div class="tp-section">
+  <div class="tp-section-header">
+    <span class="tp-label">Statement of Work</span>
+    <button class="tp-text-btn" data-action="toggle-sow">Add</button>
+  </div>
+  <div id="sow-content" class="tp-hidden">
+    <textarea class="tp-input" placeholder="Describe the scope of work..." rows="4" readonly></textarea>
+  </div>
+</div>`;
+  }
+
+  return `<div class="tp-section">
+  <div class="tp-section-header">
+    <span class="tp-label">Statement of Work</span>
+    <button class="tp-text-btn" data-action="toggle-sow">View</button>
+  </div>
+  <div id="sow-content" class="tp-hidden">
+    <textarea class="tp-input" rows="4" readonly>${escapeHtml(statement)}</textarea>
+  </div>
+</div>`;
+}
+
 // ── 1 & 2. Card + Card Header ──
 
 export function renderCard(task: Task, isExpanded: boolean): string {
   const done = task.subtasks.filter(s => s.status === "done").length;
   const total = task.subtasks.length;
+
+  const scopeTag = !task.is_original_scope
+    ? `<span class="tp-scope-tag">drift</span>`
+    : "";
 
   const subtaskRows = task.subtasks
     .map(sub => renderSubtaskRow(sub, task.id))
@@ -43,7 +100,7 @@ export function renderCard(task: Task, isExpanded: boolean): string {
   return `<div class="tp-card" data-status="${task.status}" data-task-id="${task.id}">
   <div class="tp-card-header" data-action="toggle-task" data-task-id="${task.id}">
     ${renderCircularProgress(done, total, "sm")}
-    <span class="tp-card-header-title tp-heading">${escapeHtml(task.title)}</span>
+    <span class="tp-card-header-title tp-heading">${escapeHtml(task.title)}${scopeTag}</span>
     ${isExpanded ? chevronOpenSvg : chevronSvg}
   </div>
   ${body}
@@ -87,15 +144,42 @@ export function renderStatusDot(status: TaskStatus): string {
 
 export function renderSubtaskRow(sub: Subtask, taskId: string): string {
   const inProgress = sub.status === "in-progress" ? " tp-subtask-row--in-progress" : "";
+  const details = renderSubtaskDetails(sub);
 
-  return `<div class="tp-subtask-row${inProgress}" data-action="toggle-subtask" data-subtask-id="${sub.id}" data-task-id="${taskId}">
-  ${renderStatusDot(sub.status)}
-  <span class="tp-subtask-row-title tp-subheading">${escapeHtml(sub.title)}</span>
-  <span class="tp-subtask-row-actions">
-    ${renderStarButton(sub.id, "plan")}
-    ${renderStarButton(sub.id, "build")}
-  </span>
+  return `<div class="tp-subtask-wrapper">
+  <div class="tp-subtask-row${inProgress}" data-action="toggle-subtask" data-subtask-id="${sub.id}" data-task-id="${taskId}">
+    ${renderStatusDot(sub.status)}
+    <span class="tp-subtask-row-title tp-subheading">${escapeHtml(sub.title)}</span>
+    <span class="tp-subtask-row-actions">
+      ${renderStarButton(taskId, sub.id, "plan")}
+      ${renderStarButton(taskId, sub.id, "build")}
+    </span>
+  </div>
+  ${details}
 </div>`;
+}
+
+// ── Subtask Details (expandable on click) ──
+
+function renderSubtaskDetails(sub: Subtask): string {
+  const hasContent = sub.context || sub.notes.length > 0 || sub.files.length > 0;
+  if (!hasContent) return "";
+
+  const contextHtml = sub.context
+    ? `<div class="tp-body tp-subtask-details-context">${escapeHtml(sub.context)}</div>`
+    : "";
+
+  const notesHtml = sub.notes.length > 0
+    ? sub.notes.map(n => `<div class="tp-caption tp-subtask-details-note">\u2022 ${escapeHtml(n)}</div>`).join("")
+    : "";
+
+  const filesHtml = sub.files.length > 0
+    ? sub.files.map(f =>
+        `<div class="tp-mono tp-subtask-details-file" data-action="open-file" data-file-path="${escapeHtml(f)}">${escapeHtml(f)}</div>`
+      ).join("")
+    : "";
+
+  return `<div class="tp-subtask-details tp-hidden">${contextHtml}${notesHtml}${filesHtml}</div>`;
 }
 
 // ── 6. Expandable Section ──
@@ -122,11 +206,12 @@ export function renderExpandable(
 </div>`;
 }
 
-// ── 7. Star Button ──
+// ── 7. Star Button (plan) & Build Button ──
 
-export function renderStarButton(subtaskId: string, type: "plan" | "build"): string {
-  return `<button class="tp-star-btn" data-action="copy-prompt" data-subtask-id="${subtaskId}" data-prompt-type="${type}" title="Copy ${type} prompt">
-  ${starSvg}
+export function renderStarButton(taskId: string, subtaskId: string, type: "plan" | "build"): string {
+  const icon = type === "plan" ? starSvg : buildSvg;
+  return `<button class="tp-star-btn" data-action="copy-prompt" data-task-id="${taskId}" data-subtask-id="${subtaskId}" data-prompt-type="${type}" title="Copy ${type} prompt">
+  ${icon}
 </button>`;
 }
 
@@ -192,10 +277,8 @@ export function renderBurndownChart(points: BurndownPoint[], width: number = 260
   const remainingLine = points.map((p, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(p.remaining).toFixed(1)}`).join(" ");
   const addedLine = points.map((p, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(p.added).toFixed(1)}`).join(" ");
 
-  // Area fill under remaining line
   const areaPath = `${remainingLine} L${x(points.length - 1).toFixed(1)},${(pad.top + h).toFixed(1)} L${x(0).toFixed(1)},${(pad.top + h).toFixed(1)} Z`;
 
-  // X-axis labels (first, middle, last)
   const labelIndices = [0, Math.floor(points.length / 2), points.length - 1];
   const labels = labelIndices.map(i =>
     `<text x="${x(i).toFixed(1)}" y="${height}" fill="var(--text-muted)" font-size="7" text-anchor="middle">${escapeHtml(points[i].label)}</text>`

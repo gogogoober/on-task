@@ -55,6 +55,10 @@ export class TaskPilotFileWatcher implements vscode.Disposable {
     return this.cachedState;
   }
 
+  getCurrentBranchName(): string | undefined {
+    return this.currentBranch;
+  }
+
   refresh(): void {
     this.currentBranch = getCurrentBranch(this.workspaceRoot);
     this.loadCurrentBranchToml();
