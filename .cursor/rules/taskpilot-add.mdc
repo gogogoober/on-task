@@ -1,0 +1,92 @@
+---
+description: Add subtasks to the TaskPilot TOML from conversation context
+globs: []
+alwaysApply: false
+---
+
+# /taskpilot-add
+
+You are adding new subtasks or out-of-scope items to the TaskPilot TOML file.
+
+## Input
+
+The user will either:
+- Reference suggested subtasks by letter (e.g. "add a, c, e") from a recent build output
+- Describe new subtasks to add in free text
+
+## Adding subtasks
+
+### Field rules
+
+**slug** (the TOML key)
+- Derive from title: "Fix auth middleware types" → `fix-auth-middleware-types`
+- Short but descriptive
+
+**title**
+- Clear, imperative, specific
+- "Build X" not "X needs to be built"
+
+**status**
+- Always `"todo"` for new subtasks
+
+**order**
+- Next available number within the parent task
+- Check existing subtask orders before assigning
+
+**context**
+- Include enough background that someone with NO conversation history understands:
+  - What this subtask is
+  - Why it matters
+  - How it relates to the parent task and sibling subtasks
+- Write in present tense, technical but clear
+- 2-4 sentences
+
+**notes**
+- Include specific implementation details from the conversation
+- Reference components and classes by name, not file paths
+- Include constraints, patterns to match, decisions already made
+- Each note is a short technical fragment
+- Pull from the conversation — don't leave the notes empty
+
+**files**
+- List files that will likely be created or modified
+- Use full paths from project root
+- Include files referenced in the conversation
+
+### Scope drift tracking
+
+If the subtask was discovered during work on another subtask (common after build outputs):
+- Set `is_original_scope = false` on the parent task if it's a new task
+- Set `discovered_during = "parent-task-slug.subtask-slug"` pointing to where it was found
+- If adding to an existing task, the task's `is_original_scope` stays as-is
+
+### Quality bar
+
+Each subtask must be self-contained. If someone cleared their conversation history, pasted the Plan prompt for this subtask, and started fresh — they should have enough context to begin productive work immediately.
+
+Test: read your `context` and `notes` fields back. Would you understand what to do?
+
+## Adding out-of-scope items
+
+Write to `[out_of_scope.{slug}]`:
+- **title**: what the work is
+- **context**: why it's out of scope, what ticket/effort it belongs to
+- **notes**: relevant details discovered, enough for future ticket generation
+- **files**: files that would be affected (if known)
+
+## After adding
+
+Confirm what was added:
+
+```
+Added {n} subtasks to {parent task title}:
+- {subtask title} (order {n})
+- {subtask title} (order {n})
+```
+
+Or for out-of-scope:
+
+```
+Added {n} out-of-scope items:
+- {title}
+```

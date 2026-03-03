@@ -1,127 +1,419 @@
 // Rule text constants for clipboard copy
+// Each constant holds the full file content ready for clipboard paste.
 
-export const CURSOR_RULE = `---
-description: Maintain the TaskPilot TOML file during coding sessions
-globs: ["**/*"]
-alwaysApply: true
----
+export const CURSOR_RULE = [
+  "---",
+  "description: Maintain the TaskPilot TOML file during coding sessions",
+  'globs: ["**/*"]',
+  "alwaysApply: true",
+  "---",
+  "",
+  "# TaskPilot TOML Maintenance",
+  "",
+  "## File location",
+  "`.taskpilot/branches/{branch}.toml` where branch slashes become `--`.",
+  "Example: branch `feature/auth` \u2192 `.taskpilot/branches/feature--auth.toml`",
+  "",
+  "## Schema reference",
+  "",
+  "```toml",
+  "[meta]",
+  'ticket = "ID"',
+  'title = "Name"',
+  'branch = "branch/name"',
+  'statement = "Work description"',
+  "created = datetime",
+  "",
+  "[tasks.{slug}]",
+  'title = "string"',
+  'status = "todo|in-progress|done|blocked"',
+  "order = number",
+  "is_original_scope = true|false",
+  'context = "what and why"',
+  'notes = ["short technical fragments"]',
+  'files = ["file/paths"]',
+  'discovered_during = "task-slug.subtask-slug"  # if scope drift',
+  "",
+  "  [tasks.{slug}.subtasks.{slug}]",
+  "  title, status, order, context, notes, files, completed_at",
+  "",
+  "[out_of_scope.{slug}]",
+  "title, context, notes, files",
+  "```",
+  "",
+  "## Notes \u2014 update freely",
+  "- Append notes to the active subtask and parent task as you work",
+  "- Keep notes as short technical fragments, not prose. Lean on terminology",
+  '- If approach changes: add "Originally pursued X. Now Y because Z." Don\'t delete old notes',
+  "- Review existing notes each pass. If outdated, add a correction note",
+  "- You may update notes on sibling subtasks if you touched relevant code",
+  "",
+  "## Files \u2014 update as you go",
+  "- Add file paths to the active subtask's files array as you create or modify them",
+  "",
+  "## Status \u2014 restricted",
+  "- When user pastes a Build prompt: set that subtask to `in-progress`",
+  "- NEVER set a subtask to `done` on your own",
+  '- At end of build, if no red/yellow observations: ask "Can I mark {title} done?"',
+  "- If only yellow+green: use judgment on asking",
+  "- If any red: do not ask",
+  "- If user explicitly says to resolve: set to `done` and add `completed_at`",
+  "- NEVER change status on subtasks you are not actively working on",
+  "",
+  "## Subtask creation \u2014 never automatic",
+  "- Never add subtasks or out-of-scope items without explicit user instruction",
+  '- When user says "add a, c, e" after reviewing suggestions: populate context, notes, files to be self-contained',
+  "",
+  "## General",
+  "- Reference code by class/component name in notes, file paths are fine in files array",
+  "- Keep the TOML valid. Test your edits mentally before writing",
+].join("\n");
 
-# TaskPilot TOML Maintenance
+export const CLAUDE_MD_RULE = [
+  "## TaskPilot TOML Maintenance",
+  "",
+  "### File location",
+  "`.taskpilot/branches/{branch}.toml` where branch slashes become `--`.",
+  "Example: branch `feature/auth` \u2192 `.taskpilot/branches/feature--auth.toml`",
+  "",
+  "### Schema reference",
+  "",
+  "```toml",
+  "[meta]",
+  'ticket = "ID"',
+  'title = "Name"',
+  'branch = "branch/name"',
+  'statement = "Work description"',
+  "created = datetime",
+  "",
+  "[tasks.{slug}]",
+  'title = "string"',
+  'status = "todo|in-progress|done|blocked"',
+  "order = number",
+  "is_original_scope = true|false",
+  'context = "what and why"',
+  'notes = ["short technical fragments"]',
+  'files = ["file/paths"]',
+  'discovered_during = "task-slug.subtask-slug"  # if scope drift',
+  "",
+  "  [tasks.{slug}.subtasks.{slug}]",
+  "  title, status, order, context, notes, files, completed_at",
+  "",
+  "[out_of_scope.{slug}]",
+  "title, context, notes, files",
+  "```",
+  "",
+  "### Notes \u2014 update freely",
+  "- Append notes to the active subtask and parent task as you work",
+  "- Keep notes as short technical fragments, not prose. Lean on terminology",
+  '- If approach changes: add "Originally pursued X. Now Y because Z." Don\'t delete old notes',
+  "- Review existing notes each pass. If outdated, add a correction note",
+  "- You may update notes on sibling subtasks if you touched relevant code",
+  "",
+  "### Files \u2014 update as you go",
+  "- Add file paths to the active subtask's files array as you create or modify them",
+  "",
+  "### Status \u2014 restricted",
+  "- When user pastes a Build prompt: set that subtask to `in-progress`",
+  "- NEVER set a subtask to `done` on your own",
+  '- At end of build, if no red/yellow observations: ask "Can I mark {title} done?"',
+  "- If only yellow+green: use judgment on asking",
+  "- If any red: do not ask",
+  "- If user explicitly says to resolve: set to `done` and add `completed_at`",
+  "- NEVER change status on subtasks you are not actively working on",
+  "",
+  "### Subtask creation \u2014 never automatic",
+  "- Never add subtasks or out-of-scope items without explicit user instruction",
+  '- When user says "add a, c, e" after reviewing suggestions: populate context, notes, files to be self-contained',
+  "",
+  "### General",
+  "- Reference code by class/component name in notes, file paths are fine in files array",
+  "- Keep the TOML valid. Test your edits mentally before writing",
+].join("\n");
 
-## File location
-\`.taskpilot/branches/{branch}.toml\` where branch slashes become \`--\`.
-Example: branch \`feature/auth\` → \`.taskpilot/branches/feature--auth.toml\`
+export const INIT_COMMAND = [
+  "---",
+  "description: Initialize a TaskPilot TOML file from a statement of work",
+  "globs: []",
+  "alwaysApply: false",
+  "---",
+  "",
+  "# /taskpilot-init",
+  "",
+  "You are initializing a TaskPilot task file for the current feature branch.",
+  "",
+  "## Step 1: Analyze",
+  "",
+  "Read the statement of work provided. Before generating anything, analyze it:",
+  "",
+  "- What are the major logical groupings of work?",
+  "- What depends on what?",
+  "- What is clearly in scope vs. out of scope?",
+  "- What are the unknowns?",
+  "",
+  "## Step 2: Ask questions",
+  "",
+  "Group your questions by priority:",
+  "",
+  "\ud83d\udd34 Must answer \u2014 blocks task generation",
+  "\ud83d\udfe1 Should answer \u2014 affects how you decompose the work",
+  "\ud83d\udfe2 Quick clarification \u2014 you can assume defaults",
+  "",
+  "Keep questions specific and actionable. Don't ask about things you can infer from the codebase.",
+  "",
+  "## Step 3: Generate plan (inline, not TOML yet)",
+  "",
+  "Present the plan as:",
+  "",
+  "### Tasks",
+  "1. **{Task title}** \u2014 {one line description}",
+  "   - {subtask title}",
+  "   - {subtask title}",
+  "   - {subtask title}",
+  "",
+  "2. **{Task title}** \u2014 {one line description}",
+  "   - {subtask title}",
+  "   - {subtask title}",
+  "",
+  "### Out of scope",
+  "- {item} \u2014 {reason}",
+  "",
+  'Ask: "Does this decomposition look right? Any changes before I generate the TOML?"',
+  "",
+  "## Step 4: Generate TOML",
+  "",
+  "Write to `.taskpilot/branches/{branch}.toml` where branch slashes become `--`.",
+  "",
+  "### Schema",
+  "",
+  "```toml",
+  "[meta]",
+  'ticket = "ID"           # from statement or ask',
+  'title = "Name"',
+  'branch = "branch/name"  # current git branch',
+  'statement = "Full statement of work text"',
+  "created = datetime       # now, format: 2026-03-02T10:00:00Z",
+  "",
+  "[tasks.{slug}]",
+  'title = "string"',
+  'status = "todo"          # always todo at init',
+  "order = number           # logical execution sequence",
+  "is_original_scope = true # always true at init",
+  'context = "what and why, enough for someone with no history"',
+  "notes = []               # empty at init, accumulates during work",
+  'files = ["best/guess/paths"]',
+  "# discovered_during only used for scope drift, not at init",
+  "",
+  "  [tasks.{slug}.subtasks.{slug}]",
+  '  title = "string"',
+  '  status = "todo"',
+  "  order = number",
+  '  context = "what and why"',
+  "  notes = []",
+  '  files = ["file/paths"]',
+  "",
+  "[out_of_scope.{slug}]",
+  'title = "string"',
+  'context = "why it\'s out of scope"',
+  'notes = ["relevant details for future ticket"]',
+  "files = []",
+  "```",
+  "",
+  "### Content rules",
+  "",
+  "- **Slug IDs**: descriptive kebab-case derived from title. `state-management`, not `task-1`",
+  "- **context**: explain what and why, enough for someone with no conversation history",
+  "- **notes**: start empty \u2014 they accumulate during work",
+  "- **files**: best guesses based on codebase structure. Scan the project first",
+  "- **order**: logical execution sequence (what should be done first)",
+  "- **Subtask count**: 2-5 per task. If more, split the parent task",
+  "- **meta.statement**: the full original statement of work text",
+  "- **meta.ticket**: extract from statement if a ticket ID is mentioned, otherwise ask",
+  "- **meta.branch**: current git branch (`git rev-parse --abbrev-ref HEAD`)",
+  "",
+  "### Before writing",
+  "",
+  "Scan the codebase to inform your file path guesses:",
+  "- Check existing directory structure",
+  "- Look for naming patterns and conventions",
+  "- Identify files that will likely need modification",
+  "",
+  "Then write the TOML file.",
+].join("\n");
 
-## Schema reference
+export const SYNC_COMMAND = [
+  "---",
+  "description: Sync TaskPilot TOML with current codebase state",
+  "globs: []",
+  "alwaysApply: false",
+  "---",
+  "",
+  "# /taskpilot-sync",
+  "",
+  "You are performing a deep sync of the TaskPilot TOML file against reality.",
+  "",
+  "## Steps",
+  "",
+  "### 1. Read current state",
+  "- Read `.taskpilot/branches/{current-branch}.toml`",
+  "- Read `meta.statement` for the original intent",
+  "",
+  "### 2. Gather codebase state",
+  "- Run `git diff origin/main --name-only` to get all changed files",
+  "- If that fails, try `git diff main --name-only`",
+  "- Note which files exist, were renamed, or were deleted",
+  "",
+  "### 3. Cross-reference each task and subtask",
+  "",
+  "For each subtask:",
+  "",
+  "**Files check:**",
+  "- Are listed files still relevant? Remove paths to deleted/renamed files",
+  "- Are there changed files not listed that relate to this subtask's scope?",
+  "- Add missing file paths",
+  "",
+  "**Notes check:**",
+  "- Are existing notes still accurate?",
+  '- If an approach changed, add a pivot note: "Originally X. Now Y because Z."',
+  "- Consolidate redundant or repetitive notes into single clearer notes",
+  "- Do NOT delete notes \u2014 add corrections instead",
+  "",
+  "**Status signals (observe, don't change):**",
+  "- Does the diff show substantial implementation for this subtask?",
+  "- Are the listed files fully implemented or only partially?",
+  "- Is there work in the diff that doesn't map to any subtask?",
+  "",
+  "### 4. Update the TOML",
+  "",
+  "Apply file and note updates directly to the TOML. Do NOT change any statuses.",
+  "",
+  "### 5. Output sync summary",
+  "",
+  "```",
+  "### Sync Summary",
+  "",
+  "**Notes updated:**",
+  "- {subtask title}: {what changed}",
+  "",
+  "**Files updated:**",
+  "- {subtask title}: added {file}, removed {file}",
+  "",
+  "**Status recommendations:**",
+  "\ud83d\udfe2 Likely done (implementation appears complete):",
+  "- {subtask title} \u2014 {evidence}",
+  "",
+  "\ud83d\udfe1 Needs review (partial or unclear progress):",
+  "- {subtask title} \u2014 {what's missing or unclear}",
+  "",
+  "\ud83d\udd34 Stale (no progress detected, may need replanning):",
+  "- {subtask title} \u2014 {reason}",
+  "",
+  "**Unmapped changes:**",
+  "Files in the diff that don't belong to any subtask:",
+  "- {file} \u2014 {suggested subtask or out-of-scope}",
+  "```",
+  "",
+  'Ask: "Confirm status changes? e.g. \'mark done: first, second. replan: third.\'"',
+  "",
+  "## Rules",
+  "",
+  "- Do NOT change statuses during sync. Only recommend changes and wait for confirmation.",
+  "- Do NOT add or remove subtasks. Only update notes and files.",
+  "- Keep notes lean \u2014 short technical fragments, not prose.",
+  '- If you discover work that doesn\'t map to any subtask, flag it under "Unmapped changes."',
+].join("\n");
 
-\`\`\`toml
-[meta]
-ticket = "ID"
-title = "Name"
-branch = "branch/name"
-statement = "Work description"
-created = datetime
-
-[tasks.{slug}]
-title = "string"
-status = "todo|in-progress|done|blocked"
-order = number
-is_original_scope = true|false
-context = "what and why"
-notes = ["short technical fragments"]
-files = ["file/paths"]
-discovered_during = "task-slug.subtask-slug"  # if scope drift
-
-  [tasks.{slug}.subtasks.{slug}]
-  title, status, order, context, notes, files, completed_at
-
-[out_of_scope.{slug}]
-title, context, notes, files
-\`\`\`
-
-## Notes — update freely
-- Append notes to the active subtask and parent task as you work
-- Keep notes as short technical fragments, not prose. Lean on terminology
-- If approach changes: add "Originally pursued X. Now Y because Z." Don't delete old notes
-- Review existing notes each pass. If outdated, add a correction note
-- You may update notes on sibling subtasks if you touched relevant code
-
-## Files — update as you go
-- Add file paths to the active subtask's files array as you create or modify them
-
-## Status — restricted
-- When user pastes a Build prompt: set that subtask to \`in-progress\`
-- NEVER set a subtask to \`done\` on your own
-- At end of build, if no red/yellow observations: ask "Can I mark {title} done?"
-- If only yellow+green: use judgment on asking
-- If any red: do not ask
-- If user explicitly says to resolve: set to \`done\` and add \`completed_at\`
-- NEVER change status on subtasks you are not actively working on
-
-## Subtask creation — never automatic
-- Never add subtasks or out-of-scope items without explicit user instruction
-- When user says "add a, c, e" after reviewing suggestions: populate context, notes, files to be self-contained
-
-## General
-- Reference code by class/component name in notes, file paths are fine in files array
-- Keep the TOML valid. Test your edits mentally before writing`;
-
-export const CLAUDE_MD_RULE = `## TaskPilot TOML Maintenance
-
-### File location
-\`.taskpilot/branches/{branch}.toml\` where branch slashes become \`--\`.
-Example: branch \`feature/auth\` → \`.taskpilot/branches/feature--auth.toml\`
-
-### Schema reference
-
-\`\`\`toml
-[meta]
-ticket = "ID"
-title = "Name"
-branch = "branch/name"
-statement = "Work description"
-created = datetime
-
-[tasks.{slug}]
-title = "string"
-status = "todo|in-progress|done|blocked"
-order = number
-is_original_scope = true|false
-context = "what and why"
-notes = ["short technical fragments"]
-files = ["file/paths"]
-discovered_during = "task-slug.subtask-slug"  # if scope drift
-
-  [tasks.{slug}.subtasks.{slug}]
-  title, status, order, context, notes, files, completed_at
-
-[out_of_scope.{slug}]
-title, context, notes, files
-\`\`\`
-
-### Notes — update freely
-- Append notes to the active subtask and parent task as you work
-- Keep notes as short technical fragments, not prose. Lean on terminology
-- If approach changes: add "Originally pursued X. Now Y because Z." Don't delete old notes
-- Review existing notes each pass. If outdated, add a correction note
-- You may update notes on sibling subtasks if you touched relevant code
-
-### Files — update as you go
-- Add file paths to the active subtask's files array as you create or modify them
-
-### Status — restricted
-- When user pastes a Build prompt: set that subtask to \`in-progress\`
-- NEVER set a subtask to \`done\` on your own
-- At end of build, if no red/yellow observations: ask "Can I mark {title} done?"
-- If only yellow+green: use judgment on asking
-- If any red: do not ask
-- If user explicitly says to resolve: set to \`done\` and add \`completed_at\`
-- NEVER change status on subtasks you are not actively working on
-
-### Subtask creation — never automatic
-- Never add subtasks or out-of-scope items without explicit user instruction
-- When user says "add a, c, e" after reviewing suggestions: populate context, notes, files to be self-contained
-
-### General
-- Reference code by class/component name in notes, file paths are fine in files array
-- Keep the TOML valid. Test your edits mentally before writing`;
+export const ADD_COMMAND = [
+  "---",
+  "description: Add subtasks to the TaskPilot TOML from conversation context",
+  "globs: []",
+  "alwaysApply: false",
+  "---",
+  "",
+  "# /taskpilot-add",
+  "",
+  "You are adding new subtasks or out-of-scope items to the TaskPilot TOML file.",
+  "",
+  "## Input",
+  "",
+  "The user will either:",
+  '- Reference suggested subtasks by letter (e.g. "add a, c, e") from a recent build output',
+  "- Describe new subtasks to add in free text",
+  "",
+  "## Adding subtasks",
+  "",
+  "### Field rules",
+  "",
+  "**slug** (the TOML key)",
+  '- Derive from title: "Fix auth middleware types" \u2192 `fix-auth-middleware-types`',
+  "- Short but descriptive",
+  "",
+  "**title**",
+  "- Clear, imperative, specific",
+  '- "Build X" not "X needs to be built"',
+  "",
+  "**status**",
+  '- Always `"todo"` for new subtasks',
+  "",
+  "**order**",
+  "- Next available number within the parent task",
+  "- Check existing subtask orders before assigning",
+  "",
+  "**context**",
+  "- Include enough background that someone with NO conversation history understands:",
+  "  - What this subtask is",
+  "  - Why it matters",
+  "  - How it relates to the parent task and sibling subtasks",
+  "- Write in present tense, technical but clear",
+  "- 2-4 sentences",
+  "",
+  "**notes**",
+  "- Include specific implementation details from the conversation",
+  "- Reference components and classes by name, not file paths",
+  "- Include constraints, patterns to match, decisions already made",
+  "- Each note is a short technical fragment",
+  "- Pull from the conversation \u2014 don't leave the notes empty",
+  "",
+  "**files**",
+  "- List files that will likely be created or modified",
+  "- Use full paths from project root",
+  "- Include files referenced in the conversation",
+  "",
+  "### Scope drift tracking",
+  "",
+  "If the subtask was discovered during work on another subtask (common after build outputs):",
+  "- Set `is_original_scope = false` on the parent task if it's a new task",
+  '- Set `discovered_during = "parent-task-slug.subtask-slug"` pointing to where it was found',
+  "- If adding to an existing task, the task's `is_original_scope` stays as-is",
+  "",
+  "### Quality bar",
+  "",
+  "Each subtask must be self-contained. If someone cleared their conversation history, pasted the Plan prompt for this subtask, and started fresh \u2014 they should have enough context to begin productive work immediately.",
+  "",
+  "Test: read your `context` and `notes` fields back. Would you understand what to do?",
+  "",
+  "## Adding out-of-scope items",
+  "",
+  "Write to `[out_of_scope.{slug}]`:",
+  "- **title**: what the work is",
+  "- **context**: why it's out of scope, what ticket/effort it belongs to",
+  "- **notes**: relevant details discovered, enough for future ticket generation",
+  "- **files**: files that would be affected (if known)",
+  "",
+  "## After adding",
+  "",
+  "Confirm what was added:",
+  "",
+  "```",
+  "Added {n} subtasks to {parent task title}:",
+  "- {subtask title} (order {n})",
+  "- {subtask title} (order {n})",
+  "```",
+  "",
+  "Or for out-of-scope:",
+  "",
+  "```",
+  "Added {n} out-of-scope items:",
+  "- {title}",
+  "```",
+].join("\n");

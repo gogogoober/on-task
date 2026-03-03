@@ -345,9 +345,18 @@ export function renderRulesList(rules: string[]): string {
 // ── Compound: Rule and Skill section ──
 
 export function renderRuleSection(): string {
-  const content = `<div style="display:flex;gap:4px;padding:4px 0;">
-  <button class="tp-text-btn" data-action="copy-cursor-rule" title="Copy Cursor rule to clipboard">Copy Cursor Rule</button>
-  <button class="tp-text-btn" data-action="copy-claude-rule" title="Copy CLAUDE.md block to clipboard">Copy CLAUDE.md</button>
+  const content = `<div style="padding:4px 0;">
+  <div class="tp-caption" style="margin-bottom:4px;">Always-on rule</div>
+  <div style="display:flex;gap:4px;margin-bottom:6px;">
+    <button class="tp-text-btn" data-action="copy-cursor-rule" title="Copy to .cursor/rules/taskpilot.mdc">Cursor Rule</button>
+    <button class="tp-text-btn" data-action="copy-claude-rule" title="Append to CLAUDE.md">CLAUDE.md</button>
+  </div>
+  <div class="tp-caption" style="margin-bottom:4px;">Slash commands</div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;">
+    <button class="tp-text-btn" data-action="copy-init-command" title="Copy /taskpilot-init command">/init</button>
+    <button class="tp-text-btn" data-action="copy-sync-command" title="Copy /taskpilot-sync command">/sync</button>
+    <button class="tp-text-btn" data-action="copy-add-command" title="Copy /taskpilot-add command">/add</button>
+  </div>
 </div>`;
   return renderExpandable("Rule and Skill", content, false, "rule-skill");
 }

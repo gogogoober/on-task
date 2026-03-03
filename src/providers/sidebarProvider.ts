@@ -5,7 +5,7 @@ import * as crypto from "crypto";
 import { TaskPilotFileWatcher } from "../services/fileWatcher";
 import { buildPlanPrompt, buildBuildPrompt } from "../services/promptBuilder";
 import { computeStats } from "../services/tomlParser";
-import { CURSOR_RULE, CLAUDE_MD_RULE } from "../services/ruleContent";
+import { CURSOR_RULE, CLAUDE_MD_RULE, INIT_COMMAND, SYNC_COMMAND, ADD_COMMAND } from "../services/ruleContent";
 import { buildDashboardHtml } from "../webview/index";
 
 export class TaskPilotSidebarProvider implements vscode.WebviewViewProvider {
@@ -103,7 +103,25 @@ export class TaskPilotSidebarProvider implements vscode.WebviewViewProvider {
 
       case "copy-claude-rule": {
         await vscode.env.clipboard.writeText(CLAUDE_MD_RULE);
-        vscode.window.setStatusBarMessage("CLAUDE.md block copied — append to your CLAUDE.md", 3000);
+        vscode.window.setStatusBarMessage("CLAUDE.md block copied \u2014 append to your CLAUDE.md", 3000);
+        break;
+      }
+
+      case "copy-init-command": {
+        await vscode.env.clipboard.writeText(INIT_COMMAND);
+        vscode.window.setStatusBarMessage("/taskpilot-init copied \u2014 paste into .cursor/rules/taskpilot-init.mdc", 3000);
+        break;
+      }
+
+      case "copy-sync-command": {
+        await vscode.env.clipboard.writeText(SYNC_COMMAND);
+        vscode.window.setStatusBarMessage("/taskpilot-sync copied \u2014 paste into .cursor/rules/taskpilot-sync.mdc", 3000);
+        break;
+      }
+
+      case "copy-add-command": {
+        await vscode.env.clipboard.writeText(ADD_COMMAND);
+        vscode.window.setStatusBarMessage("/taskpilot-add copied \u2014 paste into .cursor/rules/taskpilot-add.mdc", 3000);
         break;
       }
     }

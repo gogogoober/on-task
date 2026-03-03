@@ -120,8 +120,10 @@ function getWebviewScript(): string {
       return;
     }
 
-    // ── Copy rule ──
-    if (action === 'copy-cursor-rule' || action === 'copy-claude-rule') {
+    // ── Copy rule / command ──
+    if (action === 'copy-cursor-rule' || action === 'copy-claude-rule' ||
+        action === 'copy-init-command' || action === 'copy-sync-command' ||
+        action === 'copy-add-command') {
       e.stopPropagation();
       vscode.postMessage({ type: action });
       var ruleBtn = target.closest('.tp-text-btn') || target;

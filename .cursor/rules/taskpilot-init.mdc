@@ -1,0 +1,107 @@
+---
+description: Initialize a TaskPilot TOML file from a statement of work
+globs: []
+alwaysApply: false
+---
+
+# /taskpilot-init
+
+You are initializing a TaskPilot task file for the current feature branch.
+
+## Step 1: Analyze
+
+Read the statement of work provided. Before generating anything, analyze it:
+
+- What are the major logical groupings of work?
+- What depends on what?
+- What is clearly in scope vs. out of scope?
+- What are the unknowns?
+
+## Step 2: Ask questions
+
+Group your questions by priority:
+
+🔴 Must answer — blocks task generation
+🟡 Should answer — affects how you decompose the work
+🟢 Quick clarification — you can assume defaults
+
+Keep questions specific and actionable. Don't ask about things you can infer from the codebase.
+
+## Step 3: Generate plan (inline, not TOML yet)
+
+Present the plan as:
+
+### Tasks
+1. **{Task title}** — {one line description}
+   - {subtask title}
+   - {subtask title}
+   - {subtask title}
+
+2. **{Task title}** — {one line description}
+   - {subtask title}
+   - {subtask title}
+
+### Out of scope
+- {item} — {reason}
+
+Ask: "Does this decomposition look right? Any changes before I generate the TOML?"
+
+## Step 4: Generate TOML
+
+Write to `.taskpilot/branches/{branch}.toml` where branch slashes become `--`.
+
+### Schema
+
+```toml
+[meta]
+ticket = "ID"           # from statement or ask
+title = "Name"
+branch = "branch/name"  # current git branch
+statement = "Full statement of work text"
+created = datetime       # now, format: 2026-03-02T10:00:00Z
+
+[tasks.{slug}]
+title = "string"
+status = "todo"          # always todo at init
+order = number           # logical execution sequence
+is_original_scope = true # always true at init
+context = "what and why, enough for someone with no history"
+notes = []               # empty at init, accumulates during work
+files = ["best/guess/paths"]
+# discovered_during only used for scope drift, not at init
+
+  [tasks.{slug}.subtasks.{slug}]
+  title = "string"
+  status = "todo"
+  order = number
+  context = "what and why"
+  notes = []
+  files = ["file/paths"]
+
+[out_of_scope.{slug}]
+title = "string"
+context = "why it's out of scope"
+notes = ["relevant details for future ticket"]
+files = []
+```
+
+### Content rules
+
+- **Slug IDs**: descriptive kebab-case derived from title. `state-management`, not `task-1`
+- **context**: explain what and why, enough for someone with no conversation history
+- **notes**: start empty — they accumulate during work
+- **files**: best guesses based on codebase structure. Scan the project first
+- **order**: logical execution sequence (what should be done first)
+- **Subtask count**: 2-5 per task. If more, split the parent task
+- **meta.statement**: the full original statement of work text
+- **meta.ticket**: extract from statement if a ticket ID is mentioned, otherwise ask
+- **meta.branch**: current git branch (`git rev-parse --abbrev-ref HEAD`)
+
+### Before writing
+
+Scan the codebase to inform your file path guesses:
+- Check existing directory structure
+- Look for naming patterns and conventions
+- Identify files that will likely need modification
+
+Then write the TOML file.

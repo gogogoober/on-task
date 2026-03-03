@@ -1,0 +1,79 @@
+---
+description: Sync TaskPilot TOML with current codebase state
+globs: []
+alwaysApply: false
+---
+
+# /taskpilot-sync
+
+You are performing a deep sync of the TaskPilot TOML file against reality.
+
+## Steps
+
+### 1. Read current state
+- Read `.taskpilot/branches/{current-branch}.toml`
+- Read `meta.statement` for the original intent
+
+### 2. Gather codebase state
+- Run `git diff origin/main --name-only` to get all changed files
+- If that fails, try `git diff main --name-only`
+- Note which files exist, were renamed, or were deleted
+
+### 3. Cross-reference each task and subtask
+
+For each subtask:
+
+**Files check:**
+- Are listed files still relevant? Remove paths to deleted/renamed files
+- Are there changed files not listed that relate to this subtask's scope?
+- Add missing file paths
+
+**Notes check:**
+- Are existing notes still accurate?
+- If an approach changed, add a pivot note: "Originally X. Now Y because Z."
+- Consolidate redundant or repetitive notes into single clearer notes
+- Do NOT delete notes — add corrections instead
+
+**Status signals (observe, don't change):**
+- Does the diff show substantial implementation for this subtask?
+- Are the listed files fully implemented or only partially?
+- Is there work in the diff that doesn't map to any subtask?
+
+### 4. Update the TOML
+
+Apply file and note updates directly to the TOML. Do NOT change any statuses.
+
+### 5. Output sync summary
+
+```
+### Sync Summary
+
+**Notes updated:**
+- {subtask title}: {what changed}
+
+**Files updated:**
+- {subtask title}: added {file}, removed {file}
+
+**Status recommendations:**
+🟢 Likely done (implementation appears complete):
+- {subtask title} — {evidence}
+
+🟡 Needs review (partial or unclear progress):
+- {subtask title} — {what's missing or unclear}
+
+🔴 Stale (no progress detected, may need replanning):
+- {subtask title} — {reason}
+
+**Unmapped changes:**
+Files in the diff that don't belong to any subtask:
+- {file} — {suggested subtask or out-of-scope}
+```
+
+Ask: "Confirm status changes? e.g. 'mark done: first, second. replan: third.'"
+
+## Rules
+
+- Do NOT change statuses during sync. Only recommend changes and wait for confirmation.
+- Do NOT add or remove subtasks. Only update notes and files.
+- Keep notes lean — short technical fragments, not prose.
+- If you discover work that doesn't map to any subtask, flag it under "Unmapped changes."
