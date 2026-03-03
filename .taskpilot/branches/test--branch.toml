@@ -1,0 +1,111 @@
+[meta]
+ticket = "PROJ-1234"
+title = "Add user notification preferences"
+branch = "feature/notification-prefs"
+statement = "Build a notification preferences system that lets users toggle email, push, and SMS notifications per notification type."
+created = 2026-03-02T10:00:00Z
+
+[tasks.state-management]
+title = "Notification Preferences State Management"
+status = "in-progress"
+order = 1
+is_original_scope = true
+context = "New state slice for notification prefs. Using React Query for server state."
+notes = [
+  "Decided on React Query since prefs are server-owned",
+  "Found existing useUserSettings hook we can extend"
+]
+files = [
+  "src/hooks/useUserSettings.ts",
+  "src/types/preferences.ts",
+  "src/api/preferences.ts"
+]
+
+  [tasks.state-management.subtasks.define-types]
+  title = "Define TypeScript types for notification preferences"
+  status = "done"
+  order = 1
+  context = "Need NotificationPreference type and API response shape"
+  notes = ["Created PreferenceChannel enum: email | push | sms"]
+  files = ["src/types/preferences.ts"]
+  completed_at = 2026-03-02T10:15:00Z
+
+  [tasks.state-management.subtasks.react-query-hook]
+  title = "Build React Query hook with optimistic updates"
+  status = "in-progress"
+  order = 2
+  context = "Extends useUserSettings pattern"
+  notes = [
+    "Using optimistic updates for toggle UX",
+    "Need to invalidate user-settings cache on mutation"
+  ]
+  files = [
+    "src/hooks/useNotificationPreferences.ts",
+    "src/hooks/useUserSettings.ts"
+  ]
+
+  [tasks.state-management.subtasks.api-client]
+  title = "Add API client functions for preferences CRUD"
+  status = "todo"
+  order = 3
+  context = "REST endpoints for preferences CRUD"
+  notes = []
+  files = ["src/api/preferences.ts", "src/api/client.ts"]
+
+[tasks.ui-updates]
+title = "Preferences UI components and settings page integration"
+status = "todo"
+order = 2
+is_original_scope = true
+context = "New settings page section with toggle grid."
+notes = ["Design reviewed - using toggle switches, not checkboxes"]
+files = [
+  "src/pages/Settings/NotificationPreferences.tsx",
+  "src/components/ToggleGrid.tsx"
+]
+
+  [tasks.ui-updates.subtasks.toggle-grid]
+  title = "Create reusable ToggleGrid component"
+  status = "todo"
+  order = 1
+  context = "Reusable grid of labeled toggles"
+  notes = []
+  files = ["src/components/ToggleGrid.tsx"]
+
+  [tasks.ui-updates.subtasks.settings-section]
+  title = "Wire NotificationPreferences into Settings page"
+  status = "todo"
+  order = 2
+  context = "Add as new tab/section in settings"
+  notes = []
+  files = ["src/pages/Settings/index.tsx"]
+
+[tasks.auth-fix]
+title = "Fix type error in auth middleware discovered during hook work"
+status = "todo"
+order = 3
+is_original_scope = false
+discovered_during = "state-management.react-query-hook"
+context = "Auth middleware has any type on user object that breaks inference."
+notes = ["Found while wiring preferences to auth context"]
+files = ["src/middleware/auth.ts", "src/types/user.ts"]
+
+  [tasks.auth-fix.subtasks.fix-any-type]
+  title = "Replace any type on req.user with proper User type"
+  status = "todo"
+  order = 1
+  context = "Auth middleware types are wrong"
+  notes = ["Found while wiring preferences to auth context"]
+  files = ["src/middleware/auth.ts", "src/types/user.ts"]
+
+[out_of_scope.notification-delivery]
+title = "Notification delivery service"
+context = "Need email/push providers. Separate infra ticket."
+notes = ["Backend infrastructure needed"]
+files = []
+
+[out_of_scope.user-migration]
+title = "Migrate existing users to default preferences"
+context = "~50k users. Needs its own ticket with rollback plan."
+notes = ["Data migration concern"]
+files = []

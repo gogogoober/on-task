@@ -1,6 +1,6 @@
 // HTML component builders
 
-import { Task, Subtask, TaskStatus, Observation, BurndownPoint } from "../types";
+import { Task, Subtask, TaskStatus, Observation, BurndownPoint, OutOfScopeItem } from "../types";
 
 // ── SVG Icons ──
 
@@ -241,10 +241,10 @@ export function renderObservation(obs: Observation): string {
 
 // ── Compound: Out-of-scope list ──
 
-export function renderOutOfScopeList(items: string[]): string {
+export function renderOutOfScopeList(items: OutOfScopeItem[]): string {
   if (items.length === 0) return "";
   const rows = items.map(item =>
-    `<div class="tp-subtask-row"><span class="tp-caption">• ${escapeHtml(item)}</span></div>`
+    `<div class="tp-subtask-row"><span class="tp-caption">\u2022 ${escapeHtml(item.title)}</span></div>`
   ).join("");
   return renderExpandable("Out of scope", rows, false, "out-of-scope", items.length);
 }
@@ -254,7 +254,7 @@ export function renderOutOfScopeList(items: string[]): string {
 export function renderRulesList(rules: string[]): string {
   if (rules.length === 0) return "";
   const rows = rules.map(rule =>
-    `<div class="tp-subtask-row"><span class="tp-caption">• ${escapeHtml(rule)}</span></div>`
+    `<div class="tp-subtask-row"><span class="tp-caption">\u2022 ${escapeHtml(rule)}</span></div>`
   ).join("");
   return renderExpandable("Rules", rows, false, "rules", rules.length);
 }
