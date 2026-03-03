@@ -5,6 +5,7 @@ import * as crypto from "crypto";
 import { TaskPilotFileWatcher } from "../services/fileWatcher";
 import { buildPlanPrompt, buildBuildPrompt } from "../services/promptBuilder";
 import { computeStats } from "../services/tomlParser";
+import { CURSOR_RULE, CLAUDE_MD_RULE } from "../services/ruleContent";
 import { buildDashboardHtml } from "../webview/index";
 
 export class TaskPilotSidebarProvider implements vscode.WebviewViewProvider {
@@ -91,6 +92,18 @@ export class TaskPilotSidebarProvider implements vscode.WebviewViewProvider {
         } catch {
           vscode.window.showWarningMessage(`File not found: ${message.filePath}`);
         }
+        break;
+      }
+
+      case "copy-cursor-rule": {
+        await vscode.env.clipboard.writeText(CURSOR_RULE);
+        vscode.window.setStatusBarMessage("Cursor rule copied — paste into .cursor/rules/taskpilot.mdc", 3000);
+        break;
+      }
+
+      case "copy-claude-rule": {
+        await vscode.env.clipboard.writeText(CLAUDE_MD_RULE);
+        vscode.window.setStatusBarMessage("CLAUDE.md block copied — append to your CLAUDE.md", 3000);
         break;
       }
     }

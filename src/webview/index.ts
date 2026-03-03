@@ -10,6 +10,7 @@ import {
   renderOutOfScopeList,
   renderBurndownChart,
   renderDivider,
+  renderRuleSection,
   renderFooter,
 } from "./components";
 
@@ -118,6 +119,17 @@ function getWebviewScript(): string {
       }
       return;
     }
+
+    // ── Copy rule ──
+    if (action === 'copy-cursor-rule' || action === 'copy-claude-rule') {
+      e.stopPropagation();
+      vscode.postMessage({ type: action });
+      var ruleBtn = target.closest('.tp-text-btn') || target;
+      var origText = ruleBtn.textContent;
+      ruleBtn.textContent = 'Copied!';
+      setTimeout(function() { ruleBtn.textContent = origText; }, 1200);
+      return;
+    }
   });
 })();`;
 }
@@ -170,6 +182,8 @@ export function buildDashboardHtml(
   ${outOfScope ? renderDivider() + outOfScope : ""}
   ${renderDivider()}
   ${burndownSection}
+  ${renderDivider()}
+  ${renderRuleSection()}
   <div class="tp-spacer"></div>
   ${renderFooter()}
 </div>`;

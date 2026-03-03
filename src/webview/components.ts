@@ -341,3 +341,13 @@ export function renderRulesList(rules: string[]): string {
   ).join("");
   return renderExpandable("Rules", rows, false, "rules", rules.length);
 }
+
+// ── Compound: Rule and Skill section ──
+
+export function renderRuleSection(): string {
+  const content = `<div style="display:flex;gap:4px;padding:4px 0;">
+  <button class="tp-text-btn" data-action="copy-cursor-rule" title="Copy Cursor rule to clipboard">Copy Cursor Rule</button>
+  <button class="tp-text-btn" data-action="copy-claude-rule" title="Copy CLAUDE.md block to clipboard">Copy CLAUDE.md</button>
+</div>`;
+  return renderExpandable("Rule and Skill", content, false, "rule-skill");
+}

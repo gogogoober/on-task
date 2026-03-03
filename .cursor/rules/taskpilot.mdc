@@ -1,0 +1,65 @@
+---
+description: Maintain the TaskPilot TOML file during coding sessions
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# TaskPilot TOML Maintenance
+
+## File location
+`.taskpilot/branches/{branch}.toml` where branch slashes become `--`.
+Example: branch `feature/auth` → `.taskpilot/branches/feature--auth.toml`
+
+## Schema reference
+
+```toml
+[meta]
+ticket = "ID"
+title = "Name"
+branch = "branch/name"
+statement = "Work description"
+created = datetime
+
+[tasks.{slug}]
+title = "string"
+status = "todo|in-progress|done|blocked"
+order = number
+is_original_scope = true|false
+context = "what and why"
+notes = ["short technical fragments"]
+files = ["file/paths"]
+discovered_during = "task-slug.subtask-slug"  # if scope drift
+
+  [tasks.{slug}.subtasks.{slug}]
+  title, status, order, context, notes, files, completed_at
+
+[out_of_scope.{slug}]
+title, context, notes, files
+```
+
+## Notes — update freely
+- Append notes to the active subtask and parent task as you work
+- Keep notes as short technical fragments, not prose. Lean on terminology
+- If approach changes: add "Originally pursued X. Now Y because Z." Don't delete old notes
+- Review existing notes each pass. If outdated, add a correction note
+- You may update notes on sibling subtasks if you touched relevant code
+
+## Files — update as you go
+- Add file paths to the active subtask's files array as you create or modify them
+
+## Status — restricted
+- When user pastes a Build prompt: set that subtask to `in-progress`
+- NEVER set a subtask to `done` on your own
+- At end of build, if no red/yellow observations: ask "Can I mark {title} done?"
+- If only yellow+green: use judgment on asking
+- If any red: do not ask
+- If user explicitly says to resolve: set to `done` and add `completed_at`
+- NEVER change status on subtasks you are not actively working on
+
+## Subtask creation — never automatic
+- Never add subtasks or out-of-scope items without explicit user instruction
+- When user says "add a, c, e" after reviewing suggestions: populate context, notes, files to be self-contained
+
+## General
+- Reference code by class/component name in notes, file paths are fine in files array
+- Keep the TOML valid. Test your edits mentally before writing
