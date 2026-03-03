@@ -12,6 +12,7 @@ export class TaskPilotFileWatcher implements vscode.Disposable {
   private cachedState: TaskPilotState | null = null;
   private disposables: vscode.Disposable[] = [];
   private pollInterval: ReturnType<typeof setInterval> | undefined;
+  private debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
   private readonly _onStateChange = new vscode.EventEmitter<TaskPilotState | null>();
   readonly onStateChange: vscode.Event<TaskPilotState | null> = this._onStateChange.event;
@@ -40,6 +41,10 @@ export class TaskPilotFileWatcher implements vscode.Disposable {
   }
 
   dispose(): void {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = undefined;
+    }
     if (this.pollInterval) {
       clearInterval(this.pollInterval);
       this.pollInterval = undefined;
@@ -75,9 +80,14 @@ export class TaskPilotFileWatcher implements vscode.Disposable {
   }
 
   private onTomlFileChanged(): void {
-    // Re-load the current branch's TOML (the change may be to a different branch file,
-    // but re-parsing is cheap so we keep it simple)
-    this.loadCurrentBranchToml();
+    // Debounce rapid file changes (e.g. AI assistants saving multiple times)
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+    }
+    this.debounceTimer = setTimeout(() => {
+      this.debounceTimer = undefined;
+      this.loadCurrentBranchToml();
+    }, 300);
   }
 
   private loadCurrentBranchToml(): void {

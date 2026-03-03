@@ -3,6 +3,9 @@
 src/**
 node_modules/**
 prompts/**
+.taskpilot/**
+.cursor/**
+.claude/**
 tsconfig.json
 esbuild.config.mjs
 .gitignore
